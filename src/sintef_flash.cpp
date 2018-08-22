@@ -9,25 +9,37 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <iostream>
+#include "sintef_flash.hpp"
 
 
-i3ds::SintefFlash::SintefFlash (std::string port)
+
+#define BOOST_LOG_DYN_LINK
+
+#include <boost/log/core.hpp>
+#include <boost/log/trivial.hpp>
+#include <boost/log/expressions.hpp>
+
+namespace logging = boost::log;
+
+
+i3ds::SintefFlash::SintefFlash (NodeID nodeID, std::string port): Flash(nodeID)
 {
-  BOOST_LOG_TRIVIAL(info) << "Connecting to serial port: " << serialPort;
+  BOOST_LOG_TRIVIAL(info) << "SintefFlash constructor";
+  BOOST_LOG_TRIVIAL(info) << "Connecting to serial port: " << port;
 
   memset (fds, 0, sizeof(pollfd));
-  fds[0].fd = openSerial(port.c_str());
+  fds[0].fd = OpenSerialPort(port.c_str());
 
 }
 
 i3ds::SintefFlash::~SintefFlash()
 {
   BOOST_LOG_TRIVIAL(info) << "i3ds::SintefFlash Destructor";
-  closeSerialPort ();
+  CloseSerialPort ();
 }
 
 void
-i3ds::SintefFlash::Close()
+i3ds::SintefFlash::CloseSerialPort()
 {
   BOOST_LOG_TRIVIAL(info) << "Closing Serial port";
   close(fds[0].fd);
@@ -41,20 +53,21 @@ i3ds::SintefFlash::ManualTrigger ()
 }
 
 /// This is a parameter string as described in the manual.
-void i3ds::SintefFlash::SendString (const char* parameter)
+void
+i3ds::SintefFlash::SendString (const char* parameter)
 {
 
   char buff[100];
   memset (buff, 0, sizeof(buff));
-  BOOST_LOG_TRIVIAL(info) << "Sending parameter string: " << parameterString;
+  BOOST_LOG_TRIVIAL(info) << "Sending parameter string: " << parameter;
 
   char command[100];
   memset (command, 0, sizeof(command));
-  strncpy (command, parameterString, 99);
+  strncpy (command, parameter, 99);
   strcat (command, "\n");
 
-  write (fds[0].fd, command, strlen (command));
-  BOOST_LOG_TRIVIAL(info) << "strlen(command) " << strlen (command);
+  ssize_t retval = write (fds[0].fd, command, strlen (command));
+  BOOST_LOG_TRIVIAL(info) << "strlen(command) " << strlen (command) << "retval(write)" << retval;
   tcdrain (fds[0].fd);
 
   // Waiting for response
@@ -109,9 +122,9 @@ void i3ds::SintefFlash::SendString (const char* parameter)
 
 //RTc,p,d,s,
 //RTc,p,d,s,r (r is optional)
-// Limits are described in manual
+// Limits are described in manual#include <boost/program_options.hpp>
 void
-i3ds::SintefFlash::SendParameters (int c, float p, float d, float s, float r)
+i3ds::SintefFlash::setCommunicationParameters (int c, float p, float d, float s, float r)
 {
 
   char buffer[100];
@@ -141,7 +154,7 @@ i3ds::SintefFlash::SendParameters (int c, float p, float d, float s, float r)
 }
 
 void
-i3ds::SintefFlash::setCommunicationParameters (int fd)
+i3ds::SintefFlash::SetSerialCommunicationParameters (int fd)
 {
   BOOST_LOG_TRIVIAL(info) << "setConfiguration";
   struct termios Opt;
@@ -160,7 +173,7 @@ i3ds::SintefFlash::setCommunicationParameters (int fd)
 }
 
 int
-i3ds::SintefFlash::Open(const char *device)
+i3ds::SintefFlash::OpenSerialPort(const char *device)
 {
   int fd = open (device, O_RDWR | O_NOCTTY | O_NDELAY);  //| O_NOCTTY | O_NDELAY
   if (-1 == fd)
@@ -170,9 +183,15 @@ i3ds::SintefFlash::Open(const char *device)
     }
   else
     {
-      setCommunicationParameters (fd);
+      SetSerialCommunicationParameters (fd);
       return fd;
     }
 
 }
 
+void
+i3ds::SintefFlash::handle_flash(FlashService::Data& command)
+{
+  BOOST_LOG_TRIVIAL(info) << "handle_flash";
+
+}

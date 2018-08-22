@@ -34,6 +34,7 @@ namespace logging = boost::log;
 int
 main (int argc, char* argv[])
 {
+  unsigned int node_id;
   std::string serialPort;
   std::string flashCommand;
   bool triggerFlash = false;
@@ -43,7 +44,7 @@ main (int argc, char* argv[])
 
   po::options_description desc ("Wide angle flash control options");
   desc.add_options () ("help,h", "Produce this message")
-  //    ("node", po::value<unsigned int>(&node_id)->required(), "Node ID of camera")
+  ("node,n", po::value<unsigned int>(&node_id)->required(), "Node ID of camera")
 
   ("device,d", po::value<std::string> ()->default_value (DEFAULT_SERIAL_PORT),
    "Serial(USB) port the \"Wide angle flash\" is connected to")
@@ -138,18 +139,18 @@ main (int argc, char* argv[])
 
   BOOST_LOG_TRIVIAL(info) << argv[0];
 
-  i3ds::SintefFlash *serialCommunicator = new i3ds::SintefFlash(serialPort);
+  i3ds::SintefFlash *serialCommunicator = new i3ds::SintefFlash(node_id, serialPort);
 
   if (!flashCommand.empty ())
     {
-      serialCommunicator->sendParameterString (flashCommand.c_str ());
+      serialCommunicator->SendString (flashCommand.c_str ());
     }
 
   if (!remoteParameters.empty ())
     {
       if (remoteParameters.size () == 4)
 	{
-      serialCommunicator->sendConfigurationParameters (
+      serialCommunicator->setCommunicationParameters (
 	  remoteParameters[0],
 	  remoteParameters[1],
 	  remoteParameters[2],
@@ -158,7 +159,7 @@ main (int argc, char* argv[])
     }
   if (remoteParameters.size () == 5)
     {
-  serialCommunicator->sendConfigurationParameters (
+  serialCommunicator->setCommunicationParameters (
       remoteParameters[0],
       remoteParameters[1],
       remoteParameters[2],
@@ -170,7 +171,7 @@ main (int argc, char* argv[])
 
 if (triggerFlash)
 {
-serialCommunicator->sendManualTrigger ();
+serialCommunicator->ManualTrigger ();
 }
 
 if (dontRunProgram)
@@ -190,7 +191,7 @@ return 0;
  sleep(1);
  serialCommunicator->sendManualTrigger ();
  */
-serialCommunicator->closeSerialPort ();
+serialCommunicator->CloseSerialPort ();
 
 return 0;
 }
