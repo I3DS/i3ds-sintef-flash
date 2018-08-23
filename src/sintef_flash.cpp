@@ -67,7 +67,7 @@ i3ds::SintefFlash::SendString (const char* parameter)
   strcat (command, "\n");
 
   ssize_t retval = write (fds[0].fd, command, strlen (command));
-  BOOST_LOG_TRIVIAL(info) << "strlen(command) " << strlen (command) << "retval(write)" << retval;
+  BOOST_LOG_TRIVIAL(info) << "strlen(command) " << strlen (command) << ",  return value(write): " << retval;
   tcdrain (fds[0].fd);
 
   // Waiting for response
@@ -92,7 +92,27 @@ i3ds::SintefFlash::SendString (const char* parameter)
 		  BOOST_LOG_TRIVIAL(info) <<"Error read event: %s" << strerror (errno);
 		}
 	      buff[length] = 0;
-	      BOOST_LOG_TRIVIAL(info) << "From poll: " << buff << "  Length:" << length;
+	     // BOOST_LOG_TRIVIAL(info) << "From poll \"" << buff<<"\"";
+	      // TODO: Potencial bufferflow ?
+	      char buff2[100];
+	      int j = 0;
+	      for(int i=0; buff[i] != '\0'; i++)
+		{
+		  if(buff[i] == '\n')
+		    {
+		      strncpy(&buff2[j], "<NL>", 4);
+		      j = j + 3;
+		    }
+		  else
+		    {
+		      buff2[j] = buff[i];
+		    }
+		  buff2[j+1] = '\0';
+		  j++;
+		}
+
+	      BOOST_LOG_TRIVIAL(info) << "From poll:(Newline replaced) \"" << buff2<<"\"";
+	      BOOST_LOG_TRIVIAL(info) << "Received Length:" << length;
 	      if (buff[strlen (command) + 1] == '>')
 		{
 		  BOOST_LOG_TRIVIAL(info) << "Ok response.\n";
