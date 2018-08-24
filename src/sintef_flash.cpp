@@ -190,7 +190,8 @@ i3ds::SintefFlash::setFlashParameters ( int c, 	///< 1 – light strobe output; 
 
   BOOST_LOG_TRIVIAL(info) <<"Sending configuration parameters: " << "c:" << c << " "
       "p:" << p << " "
-      "d:" << d << " ";
+      "d:" << d << " "
+      "s:" << s << " ";
 
   if (r != -1.0)
     {
