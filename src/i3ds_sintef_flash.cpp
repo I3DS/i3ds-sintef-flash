@@ -203,7 +203,7 @@ else
  serialCommunicator->sendManualTrigger ();
  sleep(1);
 
- serialCommunicator->sendConfigurationParameters (1, 0.2, 0.01, 90);
+ serialCommunicator->setFlashParameters (1, 0.2, 0.01, 90);
  sleep(1);
  serialCommunicator->sendManualTrigger ();
  */

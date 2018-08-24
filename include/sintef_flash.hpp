@@ -38,7 +38,7 @@ public:
   // Made public while testing
   void CloseSerialPort();
   void ManualTrigger();
-  void setCommunicationParameters (int c, float p, float d, float s, float r = 1.0);
+  void setFlashParameters (int c, float p, float d, float s, float r = 1.0);
   void SendString(const char* parameter);
   void SetSerialCommunicationParameters(int fd);
 

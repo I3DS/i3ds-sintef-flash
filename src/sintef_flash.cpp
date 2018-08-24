@@ -144,7 +144,12 @@ i3ds::SintefFlash::SendString (const char* parameter)
 //RTc,p,d,s,r (r is optional)
 // Limits are described in manual#include <boost/program_options.hpp>
 void
-i3ds::SintefFlash::setCommunicationParameters (int c, float p, float d, float s, float r)
+i3ds::SintefFlash::setFlashParameters ( int c, 	///< 1 – light strobe output; 2 – Trigger output signal.
+					float p, ///< Pulsewidth in milliseconds (0.01 to 3)
+					float d, ///< Delay from trigger to pulse in milliseconds (0.01 to 999)
+					float s, ///< Strength setting i percent (0 to 100)
+					float r 	///< Re-trigger delay in milliseconds (optional parameter)
+				      )
 {
 
   char buffer[100];
@@ -213,5 +218,54 @@ void
 i3ds::SintefFlash::handle_flash(FlashService::Data& command)
 {
   BOOST_LOG_TRIVIAL(info) << "handle_flash";
+  int strength = command.request.strength;
+  int duration = command.request.duration;
 
+  BOOST_LOG_TRIVIAL(info) << "Strength: " << strength;
+  BOOST_LOG_TRIVIAL(info) << "Duration: " << duration;
+
+  if ((strength < 0) || (strength > 100) )
+    {
+      BOOST_LOG_TRIVIAL(info) << "Strength must be within 0-100%.";
+      throw i3ds::CommandError(error_value, "Flash Strength must be within 0-100%.");
+    }
+
+  if ((duration < 0) || (duration > 3000) )
+    {
+      BOOST_LOG_TRIVIAL(info) << "Duration must be within 0-3000ms.";
+      throw i3ds::CommandError(error_value, "Flash duration must be within 0-3000ms.");
+    }
+
+
+  /// Remark: Err 5 is a out of range warning for one parameter.
+        /// It is fixed to valid value.
+        /// But, it looks as there is a limit with a relationship between duration and flash strength
+        /// Explained here:
+	 //   http://www.gardasoft.com/downloads/?f=112
+        //  Page 13(Read it)
+        ///
+        //Output brightness		850nm variant    | 			|	White variant
+        //			Allowed pulsewidth |Allowed duty cycle 	| Allowed pulse width   |   Allowed duty cycle
+        // 0% to  20% 		3ms 			6% 			3ms 			3%
+        //21% to  30% 		3ms 			6%	 		2ms 			3%
+        //31% to  50% 		3ms 			3% 			2ms 			2%
+        //51% to 100% 		2ms 			3% 			1ms 			1%
+
+
+
+	    // After some, expremental testing.(It is not described in manual.)
+	    // It looks like there is problem with the strength-duration ratio.
+	    // It vil give the Err 5 warning. Set the actual strength and decrease duration of the pulse to fit the constraints
+
+
+
+    setFlashParameters (
+			  1, 			// Configure strobe output
+			  duration,		// Pulse width ms
+			  0.01, 		// Delay from trigger to pulse in ms(0.01 to 999)
+			  strength		/// Settings in percent
+    ); 			// 5th parameter retrigger delay in ms(optional not used)
+
+
+// Remember that the trigger related stuff is controlled by the camera its self.
 }
