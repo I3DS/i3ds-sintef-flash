@@ -26,13 +26,6 @@ namespace logging = boost::log;
 
 volatile bool running;
 
-// startup parameters
-// set /dev
-// Send manual trigger
-// Send Configuration string
-// send configuration parameters
-// Report result?
-// Standard parameters for rest of communication system.
 
 int
 main (int argc, char* argv[])
@@ -50,14 +43,17 @@ main (int argc, char* argv[])
   ("node,n", po::value<unsigned int>(&node_id)->required(), "Node ID of camera")
 
   ("device,d", po::value<std::string> ()->default_value (DEFAULT_SERIAL_PORT),
-   "Serial(USB) port the \"Wide angle flash\" is connected to")
+   "Serial(USB) port the \"Wide angle flash\" is connected to.")
 
-  ("trigger-flash,t", "Trigger flash manually")
+  ("trigger-flash,t", "Trigger flash manually.")
 
   ("command,c", po::value<std::string> (),
    "Manually send command string to interact with the flash.\n"
    "\tOne may use all command string described in the manual.\n"
-   "\tE.g \"TR1\" for triggering flash.\n") (
+   "\tE.g \"TR1\" for triggering flash.\n"
+   "\tE.g \"RT1,3,200,10.0\" For setting flash parameters.\n"
+   "\tE.g \"ST\" for getting parameter information.\n")
+   (
       "remote,r",
       po::value < std::vector<double> > (&commandParameters)->multitoken (),
       "This is the command available remotely via i3ds."
@@ -90,7 +86,6 @@ main (int argc, char* argv[])
     }
   if (vm.count ("trigger-flash"))
     {
-      // serialPort = vm["device"].as<std::string>();
       BOOST_LOG_TRIVIAL(info)<< "Manually trigger flash";
       triggerFlash = true;
       dontRunProgram = true;
