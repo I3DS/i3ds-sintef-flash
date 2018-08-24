@@ -34,7 +34,7 @@ main (int argc, char* argv[])
   std::string serialPort;
   std::string flashCommand;
   bool triggerFlash = false;
-  bool dontRunProgram = false;
+  bool testMode = false; ///< Ontly test, don't start i3ds flash server
   std::vector<double> commandParameters;
   std::vector<double> remoteParameters;
 
@@ -88,7 +88,7 @@ main (int argc, char* argv[])
     {
       BOOST_LOG_TRIVIAL(info)<< "Manually trigger flash";
       triggerFlash = true;
-      dontRunProgram = true;
+      testMode = true;
     }
 
   if (vm.count ("command"))
@@ -96,7 +96,7 @@ main (int argc, char* argv[])
       flashCommand = vm["command"].as<std::string> ();
       BOOST_LOG_TRIVIAL(info) << "Manually send command to flash.";
       BOOST_LOG_TRIVIAL(info) << "Command:" << flashCommand;
-      dontRunProgram = true;
+      testMode = true;
     }
 
   if (vm.count ("remote"))
@@ -104,7 +104,7 @@ main (int argc, char* argv[])
       remoteParameters = vm["remote"].as<std::vector<double>> ();
       BOOST_LOG_TRIVIAL(info) << "Test remote parameters.";
       BOOST_LOG_TRIVIAL(info) <<  "Commandparameter[1]:" << flashCommand << remoteParameters[0];
-      dontRunProgram = true;
+      testMode = true;
     }
 
   if (vm.count ("quite"))
@@ -172,21 +172,24 @@ if (triggerFlash)
 serialCommunicator.ManualTrigger ();
 }
 
-if (dontRunProgram)
-{
-return 0;
-}
-else
-  {
-    running = true;
+  if (testMode)
+    {
+      serialCommunicator.CloseSerialPort ();
+      return 0;
+    }
+  else
+    {
+      running = true;
 
-    while (running)
+      while (running)
         {
           sleep(1);
         }
 
       server.Stop();
-  }
+      serialCommunicator.CloseSerialPort ();
+      return 0;
+    }
 
 
 /*
