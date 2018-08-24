@@ -23,6 +23,9 @@
 namespace po = boost::program_options;
 namespace logging = boost::log;
 
+
+volatile bool running;
+
 // startup parameters
 // set /dev
 // Send manual trigger
@@ -122,35 +125,35 @@ main (int argc, char* argv[])
 
   po::notify (vm);
 
-  /*	  i3ds::Context::Ptr context(i3ds::Context::Create());
 
-   BOOST_LOG_TRIVIAL(info) << "Connecting to camera with node ID: " << node_id;
-   i3ds::CameraClient camera(context, node_id);
-   BOOST_LOG_TRIVIAL(trace) << "---> [OK]";
-   */
 
-  /*
-   // Print config, this is the final command.
-   if (vm.count("print"))
-   {
-   print_camera_settings(&camera);
-   }
-   */
+  BOOST_LOG_TRIVIAL(info) << "Wide angle flash got node ID: " << node_id;
 
-  BOOST_LOG_TRIVIAL(info) << argv[0];
+  BOOST_LOG_TRIVIAL(trace) << "---> [OK]";
 
-  i3ds::SintefFlash *serialCommunicator = new i3ds::SintefFlash(node_id, serialPort);
+  i3ds::Context::Ptr context(i3ds::Context::Create());
+  i3ds::Server server(context);
+
+  i3ds::SintefFlash serialCommunicator(node_id, serialPort);
+
+  BOOST_LOG_TRIVIAL(info) << "Attaching server.";
+  serialCommunicator.Attach(server);
+  BOOST_LOG_TRIVIAL(info) << "Starting server.";
+  server.Start();
+  BOOST_LOG_TRIVIAL(info) << "Server started.";
+
+
 
   if (!flashCommand.empty ())
     {
-      serialCommunicator->SendString (flashCommand.c_str ());
+      serialCommunicator.SendString (flashCommand.c_str ());
     }
 
   if (!remoteParameters.empty ())
     {
       if (remoteParameters.size () == 4)
 	{
-      serialCommunicator->setCommunicationParameters (
+      serialCommunicator.setCommunicationParameters (
 	  remoteParameters[0],
 	  remoteParameters[1],
 	  remoteParameters[2],
@@ -159,7 +162,7 @@ main (int argc, char* argv[])
     }
   if (remoteParameters.size () == 5)
     {
-  serialCommunicator->setCommunicationParameters (
+  serialCommunicator.setCommunicationParameters (
       remoteParameters[0],
       remoteParameters[1],
       remoteParameters[2],
@@ -171,13 +174,26 @@ main (int argc, char* argv[])
 
 if (triggerFlash)
 {
-serialCommunicator->ManualTrigger ();
+serialCommunicator.ManualTrigger ();
 }
 
 if (dontRunProgram)
 {
 return 0;
 }
+else
+  {
+    running = true;
+
+    while (running)
+        {
+          sleep(1);
+        }
+
+      server.Stop();
+  }
+
+
 /*
  serialCommunicator->sendParameterString ("RT1,3,200,10.0");
 
@@ -191,7 +207,7 @@ return 0;
  sleep(1);
  serialCommunicator->sendManualTrigger ();
  */
-serialCommunicator->CloseSerialPort ();
+serialCommunicator.CloseSerialPort ();
 
 return 0;
 }
