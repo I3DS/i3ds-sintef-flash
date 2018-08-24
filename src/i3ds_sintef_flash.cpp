@@ -148,29 +148,29 @@ main (int argc, char* argv[])
     {
       if (remoteParameters.size () == 4)
 	{
-      serialCommunicator.setCommunicationParameters (
-	  remoteParameters[0],
-	  remoteParameters[1],
-	  remoteParameters[2],
-	  remoteParameters[3]
-      );
+	   serialCommunicator.setFlashParameters (
+	       remoteParameters[0],
+	       remoteParameters[1],
+	       remoteParameters[2],
+	       remoteParameters[3]
+	   );
+	}
+      if (remoteParameters.size () == 5)
+	{
+	  serialCommunicator.setFlashParameters (
+	      remoteParameters[0],
+	      remoteParameters[1],
+	      remoteParameters[2],
+	      remoteParameters[3],
+	      remoteParameters[4]
+	  );
+	}
     }
-  if (remoteParameters.size () == 5)
-    {
-  serialCommunicator.setCommunicationParameters (
-      remoteParameters[0],
-      remoteParameters[1],
-      remoteParameters[2],
-      remoteParameters[3],
-      remoteParameters[4]
-  );
-}
-}
 
-if (triggerFlash)
-{
-serialCommunicator.ManualTrigger ();
-}
+  if (triggerFlash)
+    {
+      serialCommunicator.ManualTrigger ();
+    }
 
   if (testMode)
     {
@@ -193,6 +193,7 @@ serialCommunicator.ManualTrigger ();
 
 
 /*
+// Just Old test code for non-command line testing
  serialCommunicator->sendParameterString ("RT1,3,200,10.0");
 
  serialCommunicator->sendManualTrigger ();
@@ -204,8 +205,8 @@ serialCommunicator.ManualTrigger ();
  serialCommunicator->setFlashParameters (1, 0.2, 0.01, 90);
  sleep(1);
  serialCommunicator->sendManualTrigger ();
+ serialCommunicator.CloseSerialPort ();
+ return 0;
  */
-serialCommunicator.CloseSerialPort ();
 
-return 0;
 }
