@@ -116,6 +116,22 @@ i3ds::SintefFlash::SendString (const char* parameter)
 	      if (buff[strlen (command) + 1] == '>')
 		{
 		  BOOST_LOG_TRIVIAL(info) << "Ok response.\n";
+		 if(strstr(buff, "Err 5") != NULL)
+		     {
+		       BOOST_LOG_TRIVIAL(info) << "Outside limits for combination strength & duration.";
+		       throw i3ds::CommandError(error_value, "Outside limits for combination strength & duration.");
+		     }
+
+		   if(strstr(buff, "Err ") != NULL)
+		     {
+		       BOOST_LOG_TRIVIAL(info) << "Error in data string sent to serial port.";
+		       throw i3ds::CommandError(error_value, "Error in data string sent to serial port.");
+		     }
+
+
+
+
+
 		}
 	      else
 		{
@@ -137,6 +153,24 @@ i3ds::SintefFlash::SendString (const char* parameter)
 	  BOOST_LOG_TRIVIAL(info) << "No data within 2 seconds.";
 	}
     }
+
+/*
+
+     if(strstr(buff, "Err 5" != NULL)
+	 {
+	   BOOST_LOG_TRIVIAL(info) << "Outside limits for combination strength & duration.";
+	   throw i3ds::CommandError(error_value, "Outside limits for combination strength & duration. Strength used. Duration adjusted.");
+	 }
+
+     if(strstr(buff, "Err " != NULL)
+	 {
+	   BOOST_LOG_TRIVIAL(info) << "Error in data string sent to serial port.";
+	   throw i3ds::CommandError(error_value, "Error in data string sent to serial port.");
+          }
+
+
+
+*/
 
 }
 
