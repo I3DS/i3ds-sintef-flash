@@ -136,11 +136,11 @@ i3ds::SintefFlash::SendString (const char* parameter)
 	      else
 		{
 		  // Reformating error code to remove OK prompt at new line before sending it to client.
-		  BOOST_LOG_TRIVIAL(info) << "Error in response: %s" << buff;
+		  BOOST_LOG_TRIVIAL(info) << "Error in response:" << buff;
 		  char *p;
 		  p = strchr (buff, '\n');
 		  *p = '\0';
-		  BOOST_LOG_TRIVIAL(info) << "Error in response: %s" << buff;
+		  BOOST_LOG_TRIVIAL(info) << "Error in response:" << buff;
 		}
 	    }
 	  else
@@ -239,6 +239,8 @@ i3ds::SintefFlash::OpenSerialPort(const char *device)
   if (-1 == fd)
     {
       BOOST_LOG_TRIVIAL(info) << "Can't Open Serial Port";
+      BOOST_LOG_TRIVIAL(info) << "Exiting.";
+      exit(1);
       return -1;
     }
   else
