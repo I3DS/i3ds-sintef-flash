@@ -256,10 +256,10 @@ i3ds::SintefFlash::handle_flash(FlashService::Data& command)
 {
   BOOST_LOG_TRIVIAL(info) << "handle_flash";
   int strength = command.request.strength;
-  int duration = command.request.duration;
+  int duration_us = command.request.duration;
 
   BOOST_LOG_TRIVIAL(info) << "Strength: " << strength;
-  BOOST_LOG_TRIVIAL(info) << "Duration: " << duration;
+  BOOST_LOG_TRIVIAL(info) << "Duration in us: " << duration_us;
 
   if ((strength < 0) || (strength > 100) )
     {
@@ -267,12 +267,12 @@ i3ds::SintefFlash::handle_flash(FlashService::Data& command)
       throw i3ds::CommandError(error_value, "Flash Strength must be within 0-100%.");
     }
 
-  if ((duration < 0) || (duration > 3000) )
+  if ((duration_us < 10) || (duration_us > 3000000) )
     {
-      BOOST_LOG_TRIVIAL(info) << "Duration must be within 0-3000ms.";
+      BOOST_LOG_TRIVIAL(info) << "Duration must be within 0.01-3000ms.";
       throw i3ds::CommandError(error_value, "Flash duration must be within 0-3000ms.");
     }
-
+  float flash_duration_ms = duration_us / 1000.;
 
   /// Remark: Err 5 is a out of range warning for one parameter.
         /// It is fixed to valid value.
@@ -298,7 +298,7 @@ i3ds::SintefFlash::handle_flash(FlashService::Data& command)
 
     setFlashParameters (
 			  1, 			// Configure strobe output
-			  duration,		// Pulse width ms
+			  flash_duration_ms,		// Pulse width ms
 			  0.01, 		// Delay from trigger to pulse in ms(0.01 to 999)
 			  strength		/// Settings in percent
     ); 			// 5th parameter retrigger delay in ms(optional not used)
