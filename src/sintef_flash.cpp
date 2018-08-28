@@ -56,8 +56,8 @@ i3ds::SintefFlash::ManualTrigger ()
 void
 i3ds::SintefFlash::SendString (const char* parameter)
 {
-
-  char buff[100];
+  const int lengthOfBuff = 100;
+  char buff[lengthOfBuff];
   memset (buff, 0, sizeof(buff));
   BOOST_LOG_TRIVIAL(info) << "Sending parameter string: " << parameter;
 
@@ -84,17 +84,17 @@ i3ds::SintefFlash::SendString (const char* parameter)
 	  if (fds[0].revents & POLLIN)
 	    { //got data, and look up which fd has data, but we just have one waiting for events
 	      ssize_t length;
-	      length = read (fds[0].fd, buff, sizeof(buff));
+	      length = read (fds[0].fd, buff, lengthOfBuff);
 	      if (length == -1)
 		{
 		  // REMARK: Got "Resource temporary unavailable." sometimes.
 		  // But, I think it disapaired when I removed a terminal listening to the same serial port.
-		  BOOST_LOG_TRIVIAL(info) <<"Error read event: %s" << strerror (errno);
+		  BOOST_LOG_TRIVIAL(info) <<"Error read event: " << strerror (errno);
 		}
 	      buff[length] = 0;
 	     // BOOST_LOG_TRIVIAL(info) << "From poll \"" << buff<<"\"";
-	      // TODO: Potencial bufferflow ?
-	      char buff2[100];
+
+	      char buff2[2*lengthOfBuff];
 	      int j = 0;
 	      for(int i=0; buff[i] != '\0'; i++)
 		{
@@ -113,65 +113,31 @@ i3ds::SintefFlash::SendString (const char* parameter)
 
 	      BOOST_LOG_TRIVIAL(info) << "From poll:(Newline replaced) \"" << buff2<<"\"";
 	      BOOST_LOG_TRIVIAL(info) << "Received Length:" << length;
-	      if (buff[strlen (command) + 1] == '>')
-		{
-		  BOOST_LOG_TRIVIAL(info) << "Ok response.\n";
-		 if(strstr(buff, "Err 5") != NULL)
-		     {
-		       BOOST_LOG_TRIVIAL(info) << "Outside limits for combination strength & duration.";
-		       throw i3ds::CommandError(error_value, "Outside limits for combination strength & duration.");
-		     }
-
-		   if(strstr(buff, "Err ") != NULL)
-		     {
-		       BOOST_LOG_TRIVIAL(info) << "Error in data string sent to serial port.";
-		       throw i3ds::CommandError(error_value, "Error in data string sent to serial port.");
-		     }
 
 
+	      BOOST_LOG_TRIVIAL(info) << "Ok response.\n";
+	      if(strstr(buff, "Err 5") != NULL)
+		 {
+		   BOOST_LOG_TRIVIAL(info) << "Outside limits for combination strength & duration. Strength kept, duration adjusted";
+		   throw i3ds::CommandError(error_value, "Outside limits for combination strength & duration. Strength kept, duration adjusted");
+		 }
 
-
-
-		}
-	      else
-		{
-		  // Reformating error code to remove OK prompt at new line before sending it to client.
-		  BOOST_LOG_TRIVIAL(info) << "Error in response:" << buff;
-		  char *p;
-		  p = strchr (buff, '\n');
-		  *p = '\0';
-		  BOOST_LOG_TRIVIAL(info) << "Error in response:" << buff;
-		}
+	      if(strstr(buff, "Err ") != NULL)
+	       {
+		 BOOST_LOG_TRIVIAL(info) << "Error in data string sent to serial port.";
+		 throw i3ds::CommandError(error_value, "Error in data string sent to serial port.");
+	       }
 	    }
 	  else
 	    {
-	      BOOST_LOG_TRIVIAL(info) <<"Other event type? Needs to be handed?";
+	      BOOST_LOG_TRIVIAL(info) <<"Other event type? Needs to be handled?";
 	    }
 	}
       else
 	{
-	  BOOST_LOG_TRIVIAL(info) << "No data within 2 seconds.";
+	  BOOST_LOG_TRIVIAL(info) << "No data received from serial port within 2 seconds.";
 	}
     }
-
-/*
-
-     if(strstr(buff, "Err 5" != NULL)
-	 {
-	   BOOST_LOG_TRIVIAL(info) << "Outside limits for combination strength & duration.";
-	   throw i3ds::CommandError(error_value, "Outside limits for combination strength & duration. Strength used. Duration adjusted.");
-	 }
-
-     if(strstr(buff, "Err " != NULL)
-	 {
-	   BOOST_LOG_TRIVIAL(info) << "Error in data string sent to serial port.";
-	   throw i3ds::CommandError(error_value, "Error in data string sent to serial port.");
-          }
-
-
-
-*/
-
 }
 
 //RTc,p,d,s,
