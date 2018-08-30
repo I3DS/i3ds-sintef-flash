@@ -27,37 +27,36 @@
 namespace i3ds
 {
 
-class SintefFlash : public Flash
-{
-public:
+    class SintefFlash : public Flash
+    {
+        public:
 
-  //SintefFlash(std::string device);
-  SintefFlash (NodeID nodeID, std::string port);
-  ~SintefFlash();
+            //SintefFlash(std::string device);
+            SintefFlash ( NodeID nodeID, std::string port );
+            ~SintefFlash();
 
-  // Made public while testing
-  void CloseSerialPort();
-  void ManualTrigger();
-  void setFlashParameters (int c, float p, float d, float s, float r = 1.0);
-  void SendString(const char* parameter);
-  void SetSerialCommunicationParameters(int fd);
+            // Made public while testing
+            void CloseSerialPort();
+            void ManualTrigger();
+            void setFlashParameters ( int c, float p, float d, float s, float r = 1.0 );
+            void SendString ( const char *parameter );
+            void SetSerialCommunicationParameters ( int fd );
 
-  void handle_flash(FlashService::Data& command) override;
+            void handle_flash ( FlashService::Data &command ) override;
 
-private:
+        private:
 
-  int OpenSerialPort(const char* device);
+            int OpenSerialPort ( const char *device );
 
 //  void CloseSerialPort();
- // void SendString(const char* parameter);
- // void SendParameters(int c, float p, float d, float s, float r);
-//  void ManualTrigger();
+// void SendString(const char* parameter);
+// void SendParameters(int c, float p, float d, float s, float r);
+// void ManualTrigger();
 
 
 
-
-  struct pollfd fds[1];
-};
+            struct pollfd fds[1];
+    };
 
 } // namespace i3ds
 
