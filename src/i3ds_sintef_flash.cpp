@@ -40,7 +40,7 @@ main ( int argc, char *argv[] )
 
     po::options_description desc ( "Wide angle flash control options" );
     desc.add_options () ( "help,h", "Produce this message" )
-    ( "node,n", po::value<unsigned int> ( &node_id )->required(), "Node ID of camera" )
+    ( "node,n", po::value<unsigned int> ( &node_id )->default_value ( 21 ), "Node ID of flash" )
 
     ( "device,d", po::value<std::string> ()->default_value ( DEFAULT_SERIAL_PORT ),
       "Serial(USB) port the \"Wide angle flash\" is connected to." )
