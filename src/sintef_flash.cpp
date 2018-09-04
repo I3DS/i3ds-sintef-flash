@@ -66,9 +66,13 @@ i3ds::SintefFlash::SendString ( const char *parameter )
     strncpy ( command, parameter, lengthOfBuff - 1 );
     strcat ( command, "\n" );
 
+    tcflush ( fds[0].fd,  TCIFLUSH );
+
+
     ssize_t retval = write ( fds[0].fd, command, strlen ( command ) );
     BOOST_LOG_TRIVIAL ( info ) << "strlen(command) " << strlen ( command ) << ",  return value(write): " << retval;
     tcdrain ( fds[0].fd );
+
 
     // Waiting for response
 
@@ -130,8 +134,7 @@ i3ds::SintefFlash::SendString ( const char *parameter )
                 throw i3ds::CommandError ( error_value, "Outside limits for combination strength & duration. Strength kept, duration adjusted" );
             }
 
-            if ( strstr ( buf
-                          f, "Err " ) != NULL )
+            if ( strstr ( buff, "Err " ) != NULL )
             {
                 BOOST_LOG_TRIVIAL ( info ) << "Error in data string sent to serial port.";
                 throw i3ds::CommandError ( error_value, "Error in data string sent to serial port: " + std::string ( buff ) );
