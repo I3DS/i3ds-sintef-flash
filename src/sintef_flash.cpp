@@ -148,6 +148,8 @@ i3ds::SintefFlash::SendString ( const char *parameter )
     else
     {
         BOOST_LOG_TRIVIAL ( info ) << "No data received from serial port within 2 seconds.";
+        throw i3ds::CommandError ( error_other, "No data received from serial port within 2 seconds." );
+
     }
 
 
