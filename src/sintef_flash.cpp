@@ -275,6 +275,32 @@ i3ds::SintefFlash::handle_flash ( FlashService::Data &command )
 
 
 
+    // Test limitation of duration vs strength.
+    if ( flash_strength > 51 )
+      {
+	if ( flash_duration_ms > 1. )
+	  {
+	    flash_duration_ms = 1.;
+	  }
+      }
+
+    if ( ( flash_strength >= 21 ) && ( flash_strength <= 50 ) )
+      {
+	if ( flash_duration_ms > 2. )
+	  {
+	    flash_duration_ms = 2.;
+	  }
+      }
+
+    if ( flash_strength <= 20 )
+      {
+	if ( flash_duration_ms > 3. )
+	  {
+	    flash_duration_ms = 3.;
+	  }
+      }
+
+
     setFlashParameters (
         1, 			// Configure strobe output
         flash_duration_ms,		// Pulse width ms
