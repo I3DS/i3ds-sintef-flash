@@ -248,8 +248,8 @@ i3ds::SintefFlash::handle_flash ( FlashService::Data &command )
 
     if ( ( duration_us < 10 ) || ( duration_us > 3000000 ) )
     {
-        BOOST_LOG_TRIVIAL ( warning ) << "Duration must be within 0.01-3000ms.";
-        throw i3ds::CommandError ( error_value, "Flash duration must be within 0-3000ms." );
+        BOOST_LOG_TRIVIAL ( warning ) << "Duration must be within 0.01-3ms.";
+        throw i3ds::CommandError ( error_value, "Flash duration must be within 0.01-3ms." );
     }
     float flash_duration_ms = duration_us / 1000.;
 
