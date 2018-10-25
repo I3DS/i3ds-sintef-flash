@@ -243,7 +243,7 @@ i3ds::SintefFlash::handle_flash ( FlashService::Data &command )
     if ( ( strength < 0 ) || ( strength > 100 ) )
     {
         BOOST_LOG_TRIVIAL ( warning ) << "Strength must be within 0-100%.";
-        throw i3ds::CommandError ( error_value, "Flash Strength must be within 0-100%." );
+        throw i3ds::CommandError ( error_value, "Flash strength must be within 0-100%." );
     }
 
     if ( ( duration_us < 10 ) || ( duration_us > 3000000 ) )
