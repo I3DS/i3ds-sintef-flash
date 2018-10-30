@@ -48,7 +48,7 @@ i3ds::SintefFlash::CloseSerialPort()
 void
 i3ds::SintefFlash::ManualTrigger ()
 {
-    BOOST_LOG_TRIVIAL ( info ) << "Sending manual trigger";
+    BOOST_LOG_TRIVIAL ( trace ) << "Sending manual trigger";
     SendString ( "TR1" );
 }
 
@@ -59,7 +59,7 @@ i3ds::SintefFlash::SendString ( const char *parameter )
     const int lengthOfBuff = 100;
     char buff[lengthOfBuff];
     memset ( buff, 0, sizeof ( buff ) );
-    BOOST_LOG_TRIVIAL ( info ) << "Sending parameter string: " << parameter;
+    BOOST_LOG_TRIVIAL ( trace ) << "Sending parameter string: " << parameter;
 
     char command[lengthOfBuff];
     memset ( command, 0, lengthOfBuff - 1 );
@@ -70,7 +70,7 @@ i3ds::SintefFlash::SendString ( const char *parameter )
 
 
     ssize_t retval = write ( fds[0].fd, command, strlen ( command ) );
-    BOOST_LOG_TRIVIAL ( info ) << "strlen(command) " << strlen ( command ) << ",  return value(write): " << retval;
+    BOOST_LOG_TRIVIAL ( trace ) << "strlen(command) " << strlen ( command ) << ",  return value(write): " << retval;
     tcdrain ( fds[0].fd );
 
 
@@ -93,7 +93,7 @@ i3ds::SintefFlash::SendString ( const char *parameter )
             {
                 // REMARK: Got "Resource temporary unavailable." sometimes.
                 // But, I think it disapaired when I removed a terminal listening to the same serial port.
-                BOOST_LOG_TRIVIAL ( info ) << "Error read event: " << strerror ( errno );
+                BOOST_LOG_TRIVIAL ( trace ) << "Error read event: " << strerror ( errno );
             }
             buff[length] = 0;
             // BOOST_LOG_TRIVIAL(info) << "From poll \"" << buff<<"\"";
@@ -123,31 +123,33 @@ i3ds::SintefFlash::SendString ( const char *parameter )
                 j++;
             }
 
-            BOOST_LOG_TRIVIAL ( info ) << "From poll:(NL & CR replaced) \"" << buff2 << "\"";
-            BOOST_LOG_TRIVIAL ( info ) << "Received Length:" << length;
+            BOOST_LOG_TRIVIAL ( trace ) << "From poll:(NL & CR replaced) \"" << buff2 << "\"";
+            BOOST_LOG_TRIVIAL ( trace ) << "Received Length:" << length;
 
 
-            BOOST_LOG_TRIVIAL ( info ) << "Ok response.\n";
+            BOOST_LOG_TRIVIAL ( trace ) << "Ok response.\n";
             if ( strstr ( buff, "Err 5" ) != NULL )
             {
-                BOOST_LOG_TRIVIAL ( info ) << "Outside limits for combination strength & duration. Strength kept, duration adjusted";
+                BOOST_LOG_TRIVIAL ( trace ) << "Outside limits for combination strength & duration. Strength kept, duration adjusted";
                 throw i3ds::CommandError ( error_value, "Outside limits for combination strength & duration. Strength kept, duration adjusted" );
             }
 
             if ( strstr ( buff, "Err " ) != NULL )
             {
-                BOOST_LOG_TRIVIAL ( info ) << "Error in data string sent to serial port.";
+                BOOST_LOG_TRIVIAL ( warning ) << "Error in data string sent to serial port.";
                 throw i3ds::CommandError ( error_value, "Error in data string sent to serial port: " + std::string ( buff ) );
             }
         }
         else
         {
-            BOOST_LOG_TRIVIAL ( info ) << "Other event type? Needs to be handled?";
+            BOOST_LOG_TRIVIAL ( warning ) << "Other event type? Needs to be handled?";
         }
     }
     else
     {
-        BOOST_LOG_TRIVIAL ( info ) << "No data received from serial port within 2 seconds.";
+        BOOST_LOG_TRIVIAL ( warning ) << "No data received from serial port within 2 seconds.";
+        throw i3ds::CommandError ( error_other, "No data received from serial port within 2 seconds." );
+
     }
 
 
@@ -167,14 +169,14 @@ i3ds::SintefFlash::setFlashParameters ( int c, 	///< 1 – light strobe output; 
 
     char buffer[100];
 
-    BOOST_LOG_TRIVIAL ( info ) << "Sending configuration parameters: " << "c:" << c << " "
-                               "p:" << p << " "
-                               "d:" << d << " "
-                               "s:" << s << " ";
+    BOOST_LOG_TRIVIAL ( trace ) << "Sending configuration parameters: " << "c:" << c << " "
+                                "p:" << p << " "
+                                "d:" << d << " "
+                                "s:" << s << " ";
 
     if ( r != -1.0 )
     {
-        BOOST_LOG_TRIVIAL ( info ) << "r: " << r;
+        BOOST_LOG_TRIVIAL ( trace ) << "r: " << r;
         sprintf ( buffer, "RT%d,%g,%g,%g,%g", c, p, d, s, r );
     }
     else
@@ -211,8 +213,8 @@ i3ds::SintefFlash::OpenSerialPort ( const char *device )
     int fd = open ( device, O_RDWR | O_NOCTTY | O_NDELAY ); //| O_NOCTTY | O_NDELAY
     if ( -1 == fd )
     {
-        BOOST_LOG_TRIVIAL ( info ) << "Can't Open Serial Port";
-        BOOST_LOG_TRIVIAL ( info ) << "Exiting.";
+        BOOST_LOG_TRIVIAL ( warning ) << "Can't Open Serial Port";
+        BOOST_LOG_TRIVIAL ( warning ) << "Exiting.";
         exit ( 1 );
         return -1;
     }
@@ -232,22 +234,22 @@ void
 i3ds::SintefFlash::handle_flash ( FlashService::Data &command )
 {
     BOOST_LOG_TRIVIAL ( info ) << "handle_flash";
-    int strength = command.request.strength;
+    int flash_strength = command.request.strength;
     int duration_us = command.request.duration;
 
-    BOOST_LOG_TRIVIAL ( info ) << "Strength: " << strength;
+    BOOST_LOG_TRIVIAL ( info ) << "Strength: " << flash_strength;
     BOOST_LOG_TRIVIAL ( info ) << "Duration in us: " << duration_us;
 
-    if ( ( strength < 0 ) || ( strength > 100 ) )
+    if ( ( flash_strength < 0 ) || ( flash_strength > 100 ) )
     {
-        BOOST_LOG_TRIVIAL ( info ) << "Strength must be within 0-100%.";
-        throw i3ds::CommandError ( error_value, "Flash Strength must be within 0-100%." );
+        BOOST_LOG_TRIVIAL ( warning ) << "Strength must be within 0-100%.";
+        throw i3ds::CommandError ( error_value, "Flash strength must be within 0-100%." );
     }
 
     if ( ( duration_us < 10 ) || ( duration_us > 3000000 ) )
     {
-        BOOST_LOG_TRIVIAL ( info ) << "Duration must be within 0.01-3000ms.";
-        throw i3ds::CommandError ( error_value, "Flash duration must be within 0-3000ms." );
+        BOOST_LOG_TRIVIAL ( warning ) << "Duration must be within 0.01-3ms.";
+        throw i3ds::CommandError ( error_value, "Flash duration must be within 0.01-3ms." );
     }
     float flash_duration_ms = duration_us / 1000.;
 
@@ -273,11 +275,37 @@ i3ds::SintefFlash::handle_flash ( FlashService::Data &command )
 
 
 
+    // Test limitation of duration vs strength.
+    if ( flash_strength > 51 )
+      {
+	if ( flash_duration_ms > 1. )
+	  {
+	    flash_duration_ms = 1.;
+	  }
+      }
+
+    if ( ( flash_strength >= 21 ) && ( flash_strength <= 50 ) )
+      {
+	if ( flash_duration_ms > 2. )
+	  {
+	    flash_duration_ms = 2.;
+	  }
+      }
+
+    if ( flash_strength <= 20 )
+      {
+	if ( flash_duration_ms > 3. )
+	  {
+	    flash_duration_ms = 3.;
+	  }
+      }
+
+
     setFlashParameters (
         1, 			// Configure strobe output
         flash_duration_ms,		// Pulse width ms
         0.01, 		// Delay from trigger to pulse in ms(0.01 to 999)
-        strength		/// Settings in percent
+        flash_strength		/// Settings in percent
     ); 			// 5th parameter retrigger delay in ms(optional not used)
 
 

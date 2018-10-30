@@ -68,7 +68,7 @@ main ( int argc, char *argv[] )
     //("vector_value", po::value<std::vector<double> >(&vecoption)->
     //     multitoken()->default_value(std::vector<double>{0, 1, 2}), "description");
 
-    ( "verbose,v", "Print verbose output" ) ( "quite,q", "Quiet output" );
+    ( "verbose,v", "Print verbose output" ) ( "quiet,q", "Quiet output" );
 
     po::variables_map vm;
     po::store ( po::parse_command_line ( argc, argv, desc ), vm );
@@ -107,7 +107,7 @@ main ( int argc, char *argv[] )
         testMode = true;
     }
 
-    if ( vm.count ( "quite" ) )
+    if ( vm.count ( "quiet" ) )
     {
         logging::core::get ()->set_filter (
             logging::trivial::severity >= logging::trivial::warning );
